@@ -28,7 +28,7 @@
     "name": "Google Calendar",
     "logo": "https://logos.composio.dev/api/googlecalendar",
     "category": "scheduling & booking",
-    "toolCount": 46,
+    "toolCount": 48,
     "triggerCount": 7
   },
   {
@@ -76,7 +76,7 @@
     "name": "Perplexity AI",
     "logo": "https://logos.composio.dev/api/perplexityai",
     "category": "artificial intelligence",
-    "toolCount": 6,
+    "toolCount": 9,
     "triggerCount": 0
   },
   {
@@ -188,7 +188,7 @@
     "name": "Canvas",
     "logo": "https://logos.composio.dev/api/canvas",
     "category": "online courses",
-    "toolCount": 560,
+    "toolCount": 574,
     "triggerCount": 6
   },
   {
@@ -764,7 +764,7 @@
     "name": "Google Super",
     "logo": "https://logos.composio.dev/api/googlesuper",
     "category": "file management & storage",
-    "toolCount": 431,
+    "toolCount": 437,
     "triggerCount": 20
   },
   {
@@ -868,7 +868,7 @@
     "name": "Google Ads",
     "logo": "https://logos.composio.dev/api/googleads",
     "category": "ads & conversion",
-    "toolCount": 5,
+    "toolCount": 9,
     "triggerCount": 0
   },
   {
