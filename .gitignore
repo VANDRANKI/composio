@@ -1,64 +1,70 @@
-# dependencies (bun install)
-node_modules
-
-# output
-out
-dist
-*.tgz
-
-# code coverage
-coverage
-*.lcov
-
-# logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
-
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
-# caches
-.eslintcache
-.cache
-*.tsbuildinfo
-
-# IntelliJ based IDEs
-.idea
-
-# Finder (MacOS) folder config
-.DS_Store
-
-# turbo
-.turbo
-ts/packages/cli/.generated
-
-# lerna
-lerna-debug.log*
-
-
-# Python cache files
+# Python byte-code
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
+*.so
+
+# Python packaging
+*.egg
 *.egg-info/
+dist/
+build/
+.eggs/
 
-# wrangler
-.wrangler
-.dev.vars
+# Environments
+.venv/
+venv/
+env/
 
-# VS Code
-.vscode
-temp/
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
 
-# E2E test node_modules
-test/e2e/*/node_modules
-.vercel
+# Type checking
+.mypy_cache/
+.pyright/
+.dmypy.json
 
+# Ruff
+.ruff_cache/
 
-# Agent memory
-.agent_cache
+# Node / TypeScript
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+.cache/
+
+# pnpm
+.pnpm-store/
+
+# Bun
+.bun/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Local env files
+.env
+.env.local
+.env.*.local
+*.secrets
+
+# Jupyter
+.ipynb_checkpoints/
