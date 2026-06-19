@@ -11,6 +11,7 @@ Thank you for your interest in contributing to Composio SDK! This document provi
 - [Pull Request Process](#pull-request-process)
 - [Creating New Providers](#creating-new-providers)
 - [Testing Guidelines](#testing-guidelines)
+- [Changeset Workflow](#changeset-workflow)
 - [Release Process](#release-process)
 
 ## Development Setup
@@ -250,11 +251,7 @@ Provider packages must additionally include:
 
 4. Update documentation as needed
 
-5. Create a changeset:
-
-   ```bash
-   pnpm changeset
-   ```
+5. Create a changeset (see [Changeset Workflow](#changeset-workflow) below)
 
 6. Push your changes and create a pull request
 
@@ -311,6 +308,53 @@ describe('ToolExecution', () => {
   });
 });
 ```
+
+## Changeset Workflow
+
+This project uses [Changesets](https://github.com/changesets/changesets) to manage package versioning and changelogs. Every PR that changes published package behaviour must include a changeset file.
+
+### When to create a changeset
+
+Run `pnpm changeset` when your PR:
+
+- Adds a new user-facing feature
+- Fixes a bug that affects published package behaviour
+- Changes a public API (even if it appears backwards-compatible)
+
+### When to skip a changeset
+
+Skip the changeset step when your PR:
+
+- Only affects internal tooling, CI, or test code with no impact on published packages
+- Is a trivial documentation fix (typo, formatting)
+- Only updates dev dependencies
+
+If in doubt, create a changeset — it is easy to remove one during review, but easy to forget to add one.
+
+### Only patch bumps are allowed from contributors
+
+All changesets submitted by external contributors must use a **patch** version bump. Major and minor bumps are managed by the core team as part of the planned release process.
+
+```bash
+# Interactive changeset creation — always select "patch" when prompted
+pnpm changeset
+```
+
+The CLI will ask you:
+1. Which packages are affected (use spacebar to select, enter to confirm)
+2. The bump type — **always choose `patch`**
+3. A short description of the change (this becomes the changelog entry)
+
+### Committing the changeset
+
+The `.changeset/` directory is checked into version control. Commit the generated `.md` file together with your code changes:
+
+```bash
+git add .changeset/
+git commit -m "chore: add changeset for <your feature>"
+```
+
+The changeset file will be consumed automatically by the release workflow when the next version is published.
 
 ## Release Process
 
