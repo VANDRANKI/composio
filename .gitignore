@@ -1,64 +1,85 @@
-# dependencies (bun install)
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# output
-out
-dist
-*.tgz
+# Build outputs
+dist/
+build/
+.turbo/
+*.tsbuildinfo
 
-# code coverage
-coverage
-*.lcov
-
-# logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
-
-# dotenv environment variable files
+# Environment files
 .env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
 
-# caches
-.eslintcache
-.cache
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# TypeScript build cache
 *.tsbuildinfo
 
-# IntelliJ based IDEs
-.idea
-
-# Finder (MacOS) folder config
-.DS_Store
-
-# turbo
-.turbo
-ts/packages/cli/.generated
-
-# lerna
-lerna-debug.log*
-
-
-# Python cache files
+# Python virtual environments and build artefacts
+.venv/
+venv/
+env/
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
+*.pyd
 *.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hatch/
+.uv/
 
-# wrangler
-.wrangler
-.dev.vars
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
 
-# VS Code
-.vscode
-temp/
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# E2E test node_modules
-test/e2e/*/node_modules
-.vercel
+# Vendor submodules build artefacts (read-only references, not built here)
+ts/vendor/effect/packages/*/dist/
+ts/vendor/clack/packages/*/dist/
 
+# Playwright test artefacts
+test-results/
+playwright-report/
 
-# Agent memory
-.agent_cache
+# pnpm store
+.pnpm-store/
