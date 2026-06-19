@@ -1,9 +1,10 @@
 # dependencies (bun install)
-node_modules
+node_modules/
 
 # output
 out
-dist
+dist/
+build/
 *.tgz
 
 # code coverage
@@ -11,9 +12,9 @@ coverage
 *.lcov
 
 # logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+logs/
+*.log
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # dotenv environment variable files
 .env
@@ -34,18 +35,31 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 # turbo
-.turbo
+.turbo/
 ts/packages/cli/.generated
 
 # lerna
 lerna-debug.log*
-
 
 # Python cache files
 __pycache__/
 *.py[cod]
 *.pyo
 *.egg-info/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python coverage
+.coverage
+.coverage.*
+htmlcov/
 
 # wrangler
 .wrangler
@@ -58,7 +72,6 @@ temp/
 # E2E test node_modules
 test/e2e/*/node_modules
 .vercel
-
 
 # Agent memory
 .agent_cache
