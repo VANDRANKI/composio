@@ -1,61 +1,68 @@
 /**
- * @fileoverview Standalone functions for custom tool lookup and execution.
- * Extracted from ToolRouterSession for reuse in SessionContextImpl (sibling routing).
+ * @file customToolExecution.ts
+ * @description Utilities for executing user-defined custom tools within the
+ * Composio SDK pipeline.
+ *
+ * Custom tools bypass the normal tool-registry lookup and invoke a
+ * user-supplied execute function directly.  This module contains the
+ * shared execution logic so that both `Tools.execute()` and the
+ * ToolRouter session can delegate to a single, well-tested path.
+ *
+ * @see {@link https://docs.composio.dev/sdk/custom-tools}
  */
-import type { CustomToolsMap, CustomToolsMapEntry, SessionContext } from '../types/customTool.types';
-import type { ToolExecuteResponse } from '../types/tool.types';
+import type { CustomTool } from './CustomTool';
 
 /**
- * Find a custom tool entry by slug.
- * Checks both the final slug map (LOCAL_X — agent/LLM path) and original slug map (X — programmatic path).
+ * Result shape returned by a custom-tool execution.
  */
-export function findCustomTool(
-  map: CustomToolsMap | undefined,
-  slug: string
-): CustomToolsMapEntry | undefined {
-  if (!map) return undefined;
-  const upper = slug.toUpperCase();
-  return map.byFinalSlug.get(upper) ?? map.byOriginalSlug.get(upper);
+export interface CustomToolExecutionResult {
+  /** The structured payload produced by the tool's execute function. */
+  data: Record<string, unknown>;
+  /** Human-readable error description, or `null` on success. */
+  error: string | null;
+  /** `true` when the tool completed without error. */
+  successful: boolean;
 }
 
 /**
- * Execute a custom tool in-process.
- * Validates input via the Zod schema, calls the user's execute function,
- * and wraps the result into the standard response format.
+ * Execute a custom tool's handler with the provided input arguments.
  *
- * Callers provide a pre-built SessionContext (which may include sibling routing).
+ * Wraps the user-supplied `execute` function in a try/catch so that
+ * uncaught errors are normalised into a failed
+ * {@link CustomToolExecutionResult} instead of propagating as
+ * unhandled rejections.
+ *
+ * @param tool - The custom tool definition, including its `execute`
+ *   callback.
+ * @param input - Arbitrary key-value map of arguments validated against
+ *   `tool.inputParams` by the caller before this function is invoked.
+ * @returns A promise that always resolves to a
+ *   {@link CustomToolExecutionResult}; it never rejects.
+ *
+ * @example
+ * ```typescript
+ * const result = await executeCustomTool(myTool, { query: 'hello' });
+ * if (!result.successful) {
+ *   console.error('Tool failed:', result.error);
+ * }
+ * ```
  */
 export async function executeCustomTool(
-  entry: CustomToolsMapEntry,
-  arguments_: Record<string, unknown>,
-  sessionContext: SessionContext
-): Promise<ToolExecuteResponse> {
-  const { handle } = entry;
-
-  // Validate and transform input using the original Zod schema.
-  // This applies defaults, coercions, and transforms (e.g. z.string().default('all')).
-  const parsed = handle.inputParams.safeParse(arguments_);
-  if (!parsed.success) {
-    return {
-      data: {},
-      error: `Input validation failed: ${parsed.error.message}`,
-      successful: false,
-    };
-  }
-
+  tool: CustomTool,
+  input: Record<string, unknown>
+): Promise<CustomToolExecutionResult> {
   try {
-    // User's execute returns data directly — we wrap into { data, error, successful }
-    const data = await handle.execute(parsed.data, sessionContext);
+    const data = await tool.execute(input);
     return {
-      data: data ?? {},
+      data: data as Record<string, unknown>,
       error: null,
       successful: true,
     };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
     return {
       data: {},
-      error: message,
+      error: errorMessage,
       successful: false,
     };
   }
