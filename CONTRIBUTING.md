@@ -17,9 +17,11 @@ Thank you for your interest in contributing to Composio SDK! This document provi
 
 ### Prerequisites
 
-- Node.js (Latest LTS version recommended)
+- Node.js (Latest LTS version recommended — see `.nvmrc` for the pinned version)
 - [pnpm](https://pnpm.io/) (v10.8.0 or later)
 - [bun](https://bun.sh) for productivity (optional)
+- Python 3.10+ (for the Python SDK under `python/`)
+- [uv](https://github.com/astral-sh/uv) for Python dependency management
 
 ### Getting Started
 
@@ -30,19 +32,25 @@ Thank you for your interest in contributing to Composio SDK! This document provi
    cd composio
    ```
 
-2. Install dependencies:
+2. Initialise git submodules (vendor references for Effect.ts and Clack):
+
+   ```bash
+   git submodule update --init --recursive
+   ```
+
+3. Install dependencies:
 
    ```bash
    pnpm install
    ```
 
-3. Build the project:
+4. Build the project:
 
    ```bash
    pnpm build
    ```
 
-4. Run tests:
+5. Run tests:
    ```bash
    pnpm test
    ```
@@ -76,14 +84,24 @@ pnpm update:peer-deps
 
 ```
 composio/
-├── packages/                  # Main packages directory
-│   ├── core/                 # Core SDK package
-│   └── providers/            # Provider implementations
-├── examples/                 # Example implementations
-├── docs/                     # Documentation
-├── scripts/                  # Development and build scripts
-└── .github/                  # GitHub configuration
+├── ts/                        # TypeScript SDK (primary development target)
+│   ├── packages/
+│   │   ├── core/               # @composio/core — main SDK package
+│   │   ├── providers/          # AI provider integrations (openai, anthropic, …)
+│   │   ├── cli/                # @composio/cli — command-line interface
+│   │   └── json-schema-to-zod/ # Schema conversion utility
+│   ├── examples/               # Usage examples for each provider
+│   ├── e2e-tests/              # End-to-end runtime compatibility tests
+│   └── vendor/                 # Read-only git submodules (Effect.ts, Clack)
+├── python/                    # Python SDK
+├── docs/                      # Documentation source (Fumadocs)
+├── examples/                  # Cross-platform / cross-SDK examples
+├── scripts/                   # Monorepo-level dev and release scripts
+└── .github/                   # GitHub Actions workflows and templates
 ```
+
+> **Note:** The `ts/vendor/` directory contains **read-only** git submodules
+> for reference only. Do **not** modify files inside `ts/vendor/`.
 
 ## Coding Standards
 
