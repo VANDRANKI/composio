@@ -6,7 +6,24 @@ import { ComposioError } from '../errors/ComposioError';
 import { ToolkitVersion, ToolkitVersionParam, ToolkitVersions } from '../types/tool.types';
 import { platform } from '#platform';
 
-// File path helpers
+/**
+ * Returns the absolute path to the Composio user-data JSON file
+ * (`~/.composio/user_data.json`), or `null` if the home directory
+ * cannot be determined or the platform does not support a file system.
+ *
+ * The file stores persistent per-user configuration such as the API key
+ * and base URL set via `composio login`.
+ *
+ * @returns The absolute file path, or `null` on failure.
+ *
+ * @example
+ * ```typescript
+ * const path = userDataPath();
+ * if (path) {
+ *   console.log('User data stored at:', path);
+ * }
+ * ```
+ */
 export const userDataPath = () => {
   try {
     const homeDir = platform.homedir();
@@ -39,7 +56,34 @@ export const getUserDataJson = () => {
   }
 };
 
-// Client configuration functions
+/**
+ * Resolves the base URL and API key used to initialise the Composio client.
+ *
+ * Resolution priority for **base URL** (first truthy value wins):
+ * 1. `baseUrl` argument
+ * 2. `COMPOSIO_BASE_URL` environment variable
+ * 3. `base_url` field in `~/.composio/user_data.json`
+ * 4. {@link DEFAULT_BASE_URL} constant
+ *
+ * Resolution priority for **API key** (first truthy value wins):
+ * 1. `apiKey` argument
+ * 2. `COMPOSIO_API_KEY` environment variable
+ * 3. `api_key` field in `~/.composio/user_data.json`
+ *
+ * @param baseUrl - Optional caller-supplied base URL override.
+ * @param apiKey  - Optional caller-supplied API key override.
+ * @returns An object with `baseURL` and `apiKey` strings.
+ * @throws {ComposioNoAPIKeyError} If no API key can be resolved from any source.
+ *
+ * @example
+ * ```typescript
+ * // Typical usage — reads from env / user config automatically
+ * const { baseURL, apiKey } = getSDKConfig();
+ *
+ * // Explicit overrides take precedence over env and user config
+ * const { baseURL, apiKey } = getSDKConfig('https://my-proxy.example.com', 'sk-test-key');
+ * ```
+ */
 export function getSDKConfig(baseUrl?: string | null, apiKey?: string | null) {
   const userData = getUserDataJson();
   const { api_key: apiKeyFromUserConfig, base_url: baseURLFromUserConfig } = userData;
