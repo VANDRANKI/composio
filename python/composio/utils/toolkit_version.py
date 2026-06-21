@@ -1,5 +1,11 @@
 """
-Utilities for handling toolkit versions.
+Utilities for resolving toolkit versions from config, environment variables,
+and user-supplied defaults.
+
+The resolution helpers in this module keep the TypeScript and Python SDKs
+behaviorally consistent: both give precedence to an explicit string override,
+then per-toolkit env vars, then a caller-supplied mapping, and finally fall
+back to ``'latest'``.
 """
 
 import os
@@ -7,55 +13,106 @@ import typing as t
 
 from composio.core.types import ToolkitVersion, ToolkitVersionParam, ToolkitVersions
 
+_ENV_PREFIX = "COMPOSIO_TOOLKIT_VERSION_"
+
+
+def _get_toolkit_versions_from_env() -> ToolkitVersions:
+    """Scan the process environment for ``COMPOSIO_TOOLKIT_VERSION_*`` variables.
+
+    Keys are normalised to lower-case toolkit slugs so lookups are consistent
+    with the rest of the SDK (e.g. ``COMPOSIO_TOOLKIT_VERSION_GITHUB`` becomes
+    the key ``"github"``).
+
+    :returns: A mapping of toolkit slug to version string (may be empty).
+    """
+    versions: ToolkitVersions = {}
+    for key, value in os.environ.items():
+        if key.startswith(_ENV_PREFIX):
+            toolkit_name = key[len(_ENV_PREFIX) :].lower()
+            versions[toolkit_name] = value
+    return versions
+
 
 def get_toolkit_version(
     toolkit_slug: str, toolkit_versions: t.Optional[ToolkitVersionParam] = None
 ) -> ToolkitVersion:
     """
-    Gets the version for a specific toolkit based on the provided toolkit versions configuration.
+    Resolve the version string for a specific toolkit.
+
+    Resolution order:
+
+    1. If *toolkit_versions* is a ``str`` (e.g. ``'latest'`` or a date-based
+       version like ``'20250902_00'``), use it as a global version for **all**
+       toolkits, including this one.
+    2. If *toolkit_versions* is a ``dict``, look up *toolkit_slug* in the
+       mapping and return the associated version, or ``'latest'`` if the slug
+       is absent from the mapping.
+    3. If *toolkit_versions* is ``None``, check for a
+       ``COMPOSIO_TOOLKIT_VERSION_<TOOLKIT_SLUG>`` environment variable
+       (slug compared case-insensitively). Fall back to ``'latest'`` if not
+       set.
 
     :param toolkit_slug: The slug/name of the toolkit to get the version for
-    :param toolkit_versions: Optional toolkit versions configuration (string for global version
-                            or dict mapping toolkit slugs to versions)
-    :return: The toolkit version to use - either the specific version from config, or 'latest' as fallback
+                         (e.g. ``'github'``, ``'slack'``).
+    :param toolkit_versions: Optional toolkit versions configuration:
+
+        - A ``str`` — used as a global version for every toolkit.
+        - A ``dict`` mapping toolkit slugs to version strings.
+        - ``None`` — environment variables are consulted as a fallback.
+
+    :returns: The resolved toolkit version string (e.g. ``'20250902_00'``),
+              or ``'latest'`` if no version is configured.
     """
-    # If toolkit_versions is a string, use it as a global version for all toolkits
+    # A string value applies globally to all toolkits.
     if isinstance(toolkit_versions, str):
         return toolkit_versions
 
-    # If toolkit_versions is a dict mapping, look up the specific toolkit version
+    # A dict mapping provides per-toolkit overrides.
     if isinstance(toolkit_versions, dict) and len(toolkit_versions) > 0:
         return toolkit_versions.get(toolkit_slug, "latest")
 
-    # Else use 'latest'
-    return "latest"
+    # No explicit config: fall back to environment variables so that
+    # COMPOSIO_TOOLKIT_VERSION_<SLUG> is honoured even when toolkit_versions
+    # is None (consistent with get_toolkit_versions() behaviour).
+    env_versions = _get_toolkit_versions_from_env()
+    return env_versions.get(toolkit_slug.lower(), "latest")
 
 
 def get_toolkit_versions(
     default_versions: t.Optional[ToolkitVersionParam] = None,
 ) -> ToolkitVersionParam:
     """
-    Gets toolkit versions configuration by merging environment variables, user-provided defaults, and fallbacks.
+    Build the full toolkit-versions configuration used by the SDK client.
 
-    Priority order:
-    1. If default_versions is a string, use it as a global version for all toolkits
-    2. User-provided toolkit version mappings (default_versions dict)
-    3. Environment variables (COMPOSIO_TOOLKIT_VERSION_<TOOLKIT_NAME>)
-    4. Fallback to 'latest' if no versions are configured
+    Merges environment variables with a caller-supplied mapping so that env
+    vars can be overridden per-toolkit while still serving as a base for
+    toolkits that are not explicitly mentioned in the caller's config.
 
-    :param default_versions: Optional default versions configuration (string for global version or dict mapping toolkit names to versions)
-    :return: Toolkit versions configuration - either a string for global version or dict mapping toolkit names to versions
+    Priority order (highest to lowest):
+
+    1. If *default_versions* is a ``str``, return it immediately—it applies
+       as a global version for all toolkits and overrides everything else.
+    2. Caller-supplied ``dict`` values override per-toolkit env vars.
+    3. ``COMPOSIO_TOOLKIT_VERSION_<TOOLKIT_NAME>`` environment variables
+       provide per-toolkit defaults.
+    4. ``'latest'`` is returned when no versions are configured at all.
+
+    :param default_versions: Optional default versions configuration:
+
+        - A ``str`` — returned as-is (global version override).
+        - A ``dict`` mapping toolkit slugs to version strings.
+        - ``None`` — only environment variables (and the ``'latest'``
+          fallback) are used.
+
+    :returns: A ``str`` for a global version, a ``dict`` for per-toolkit
+              versions, or ``'latest'`` when nothing is configured.
     """
     # If already set by user as a string, use it as global version for all toolkits
     if isinstance(default_versions, str):
         return default_versions
 
     # Check if there are envs similar to COMPOSIO_TOOLKIT_VERSION_GITHUB then extract the toolkit name
-    toolkit_versions_from_env: ToolkitVersions = {}
-    for key, value in os.environ.items():
-        if key.startswith("COMPOSIO_TOOLKIT_VERSION_"):
-            toolkit_name = key.replace("COMPOSIO_TOOLKIT_VERSION_", "")
-            toolkit_versions_from_env[toolkit_name.lower()] = value
+    toolkit_versions_from_env = _get_toolkit_versions_from_env()
 
     # If the provided default versions is a dict, normalize the keys to be lower case
     # Use user provided values as overrides
