@@ -117,8 +117,50 @@ export type ComposioConfig<
 };
 
 /**
- * This is the core class for Composio.
- * It is used to initialize the Composio SDK and provide a global configuration.
+ * The main entry point for the Composio SDK.
+ *
+ * `Composio` provides a unified interface to Composio's tool platform: list and execute
+ * tools, manage toolkit connections and authentication, subscribe to triggers, interact
+ * with MCP servers, and upload/download files. All sub-systems are accessible as
+ * properties on the instance.
+ *
+ * @typeParam TProvider - The AI provider type used to wrap tools for framework-specific
+ *   consumption. Defaults to `OpenAIProvider` (OpenAI function-calling format).
+ *
+ * @example Basic setup with default provider (OpenAI)
+ * ```typescript
+ * import { Composio } from '@composio/core';
+ *
+ * const composio = new Composio({ apiKey: 'your-api-key' });
+ *
+ * // Fetch GitHub tools for a user
+ * const tools = await composio.tools.get('user-id', { toolkits: ['github'] });
+ * ```
+ *
+ * @example Using a custom AI provider
+ * ```typescript
+ * import { Composio } from '@composio/core';
+ * import { AnthropicProvider } from '@composio/anthropic';
+ *
+ * const composio = new Composio({
+ *   apiKey: 'your-api-key',
+ *   provider: new AnthropicProvider(),
+ * });
+ *
+ * // Tools will be wrapped in Anthropic tool format
+ * const tools = await composio.tools.get('user-id', { toolkits: ['slack'] });
+ * ```
+ *
+ * @example Pinning toolkit versions for production stability
+ * ```typescript
+ * const composio = new Composio({
+ *   apiKey: 'your-api-key',
+ *   toolkitVersions: {
+ *     github: '20250909_00',
+ *     slack: '20250902_00',
+ *   },
+ * });
+ * ```
  */
 export class Composio<
   TProvider extends BaseComposioProvider<unknown, unknown, unknown> = OpenAIProvider,
@@ -163,9 +205,18 @@ export class Composio<
   /**
    * Creates a new tool router session for a user.
    *
-   * @param userId {string} The user id to create the session for
-   * @param config {ToolRouterConfig} The config for the tool router session
-   * @returns {Promise<Session<TToolCollection, TTool, TProvider>>} The tool router session
+   * A tool router session groups tool execution under a single session context,
+   * enabling Composio to apply session-level policies (connection management,
+   * rate limiting, audit logging) across all tool calls made within the session.
+   *
+   * @param userId - The user ID to create the session for. Use a stable identifier
+   *   that maps to your application's user model (e.g. a UUID or email address).
+   * @param routerConfig - Optional configuration for the tool router session.
+   * @param routerConfig.manageConnections - When `true`, Composio automatically
+   *   selects the best connected account for each tool call rather than requiring
+   *   callers to specify `connectedAccountId` explicitly.
+   * @returns A `Session` object containing the session ID, a redirect URL for
+   *   connection authorization flows, and a `tools()` method to fetch session tools.
    *
    * @example
    * ```typescript
@@ -189,10 +240,21 @@ export class Composio<
   ) => Promise<Session<unknown, unknown, TProvider>>;
 
   /**
-   * Use an existing tool router session
+   * Resumes an existing tool router session by ID.
    *
-   * @param id {string} The id of the session to use
-   * @returns {Promise<Session<TToolCollection, TTool, TProvider>>} The tool router session
+   * Use this when a session was created in a previous request (e.g. stored in a
+   * database) and you want to continue executing tools under the same session
+   * context without creating a new one.
+   *
+   * @param id - The session ID returned by a previous `composio.create()` call.
+   * @returns The existing `Session` object, ready for tool retrieval and execution.
+   *
+   * @example
+   * ```typescript
+   * // Resume a session created in a previous request
+   * const session = await composio.use('session_abc123');
+   * const tools = await session.tools();
+   * ```
    */
   use: (id: string) => Promise<Session<unknown, unknown, TProvider>>;
 
@@ -314,8 +376,21 @@ export class Composio<
   }
 
   /**
-   * Get the Composio SDK client.
-   * @returns {ComposioClient} The Composio API client.
+   * Returns the underlying Composio API client.
+   *
+   * Prefer accessing data through the higher-level models (`tools`, `toolkits`, etc.).
+   * Use this method only when you need to make raw API calls that are not yet exposed
+   * through a model (e.g. during migration or for advanced use cases).
+   *
+   * @returns The `ComposioClient` instance used by this SDK instance.
+   * @throws {Error} If the client was somehow not initialized (should never happen in
+   *   normal usage — indicates a constructor bug if it does).
+   *
+   * @example
+   * ```typescript
+   * const client = composio.getClient();
+   * const raw = await client.tools.list({ toolkit_slug: 'github' });
+   * ```
    */
   getClient(): ComposioClient {
     if (!this.client) {
@@ -325,28 +400,41 @@ export class Composio<
   }
 
   /**
-   * Get the configuration SDK is initialized with
-   * @returns {ComposioConfig<TProvider>} The configuration SDK is initialized with
+   * Returns the configuration this SDK instance was initialized with.
+   *
+   * Useful for inspecting effective values after defaults and environment variables
+   * have been applied (e.g. confirming which `baseURL` was resolved, or checking
+   * the active `toolkitVersions` map).
+   *
+   * @returns A read-only snapshot of the resolved `ComposioConfig` for this instance.
+   *
+   * @example
+   * ```typescript
+   * const config = composio.getConfig();
+   * console.log(config.baseURL);        // resolved base URL
+   * console.log(config.toolkitVersions); // resolved per-toolkit versions
+   * ```
    */
   getConfig(): ComposioConfig<TProvider> {
     return this.config;
   }
 
   /**
-   * Creates a new instance of the Composio SDK with custom request options while preserving the existing configuration.
-   * This method is particularly useful when you need to:
-   * - Add custom headers for specific requests
-   * - Track request contexts with unique identifiers
-   * - Override default request behavior for a subset of operations
+   * Creates a new Composio instance with custom request headers, inheriting all
+   * other configuration from this instance.
    *
-   * The new instance inherits all configuration from the parent instance (apiKey, baseURL, provider, etc.)
-   * but allows you to specify custom request options that will be used for all API calls made through this session.
+   * This is useful when you need per-request tracing headers (e.g. `x-request-id`,
+   * `x-correlation-id`) without reconstructing the full SDK instance for each request.
+   * The returned instance shares no mutable state with the parent — all API calls
+   * made through it will carry the supplied headers.
    *
-   * @deprecated DEPRECATED: This method will be removed in a future version of the SDK.
+   * @deprecated This method will be removed in a future version. Prefer passing
+   *   `defaultHeaders` at construction time or using middleware in your HTTP layer.
    *
-   * @param {MergedRequestInit} fetchOptions - Custom request options to be used for all API calls in this session.
-   *                                          This follows the Fetch API RequestInit interface with additional options.
-   * @returns {Composio<TProvider>} A new Composio instance with the custom request options applied.
+   * @param options - Options for the new session.
+   * @param options.headers - HTTP headers to attach to every API call made through
+   *   the returned instance. Merged with (and override) the parent instance's headers.
+   * @returns A new `Composio` instance configured with the given headers.
    *
    * @example
    * ```typescript
@@ -377,25 +465,30 @@ export class Composio<
   }
 
   /**
-   * Flush any pending telemetry and wait for it to complete.
+   * Flushes any pending telemetry events and waits for delivery to complete.
    *
-   * In Node.js-compatible environments, telemetry is automatically flushed on process exit.
-   * However, in environments like Cloudflare Workers that don't support process exit events,
-   * you should call this method manually to ensure all telemetry is sent.
+   * In Node.js-compatible environments, telemetry is flushed automatically on
+   * `process.exit`. In edge runtimes (Cloudflare Workers, Vercel Edge) that do not
+   * expose process exit hooks, call this method manually and pass the returned
+   * promise to the runtime's "wait until" mechanism so the worker is not evicted
+   * before delivery finishes.
    *
-   * @returns {Promise<void>} A promise that resolves when all pending telemetry has been sent.
+   * @returns A promise that resolves once all queued telemetry events have been
+   *   delivered (or the flush timeout has elapsed).
    *
-   * @example
+   * @example Cloudflare Workers
    * ```typescript
-   * // In a Cloudflare Worker, use ctx.waitUntil to ensure telemetry is flushed
    * export default {
    *   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
    *     const composio = new Composio({ apiKey: env.COMPOSIO_API_KEY });
    *
-   *     // Do your work...
-   *     const result = await composio.tools.execute(...);
+   *     const result = await composio.tools.execute('GITHUB_GET_REPOS', {
+   *       userId: 'default',
+   *       arguments: { owner: 'composio' },
+   *       dangerouslySkipVersionCheck: true,
+   *     });
    *
-   *     // Ensure telemetry flushes before worker terminates
+   *     // Ensure telemetry flushes before the worker terminates
    *     ctx.waitUntil(composio.flush());
    *
    *     return new Response(JSON.stringify(result));
