@@ -9,10 +9,12 @@ dist
 # code coverage
 coverage
 *.lcov
+.nyc_output/
 
 # logs
 logs
 _.log
+*.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # dotenv environment variable files
@@ -21,6 +23,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.test.local
 .env.production.local
 .env.local
+.env.test
 
 # caches
 .eslintcache
@@ -32,6 +35,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # turbo
 .turbo
@@ -62,3 +67,28 @@ test/e2e/*/node_modules
 
 # Agent memory
 .agent_cache
+
+# Playwright test results
+test-results/
+playwright-report/
+
+# pnpm store (when using --store-dir)
+.pnpm-store/
+
+# Python virtual environments
+.venv/
+.uv/
+.hatch/
+.ruff_cache/
+
+# Python coverage / type checking
+.coverage
+.coverage.*
+.mypy_cache/
+.pytest_cache/
+htmlcov/
+
+# Editor swap files
+*.swp
+*.swo
+*~
