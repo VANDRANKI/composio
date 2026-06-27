@@ -1,4 +1,3 @@
-
 <div align="center">
 
 <img src="https://raw.githubusercontent.com/ComposioHQ/composio/next/public/cover.png" alt="Composio Logo" width="auto" height="auto" style="margin-bottom: 20px;"/>
@@ -16,7 +15,25 @@ Skills that evolve for your Agents
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/composio)
 </div>
 
-This repository contains the official Software Development Kits (SDKs) for Composio, providing seamless integration capabilities for Python and Typescript Agentic Frameworks and Libraries.
+This repository contains the official Software Development Kits (SDKs) for Composio, providing seamless integration capabilities for Python and TypeScript Agentic Frameworks and Libraries.
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+  - [TypeScript SDK](#typescript-sdk-installation)
+  - [Python SDK](#python-sdk-installation)
+- [Available SDKs](#available-sdks)
+- [Provider Support](#provider-support)
+- [Packages](#packages)
+- [Rube (MCP Server)](#rube)
+- [Contributing](#contributing)
+
+## Prerequisites
+
+- **TypeScript SDK**: Node.js 18+ and `npm`, `yarn`, or `pnpm`
+- **Python SDK**: Python 3.10+ and `pip` or `poetry`
+- A Composio API key — sign up at [composio.dev](https://composio.dev) to get one
 
 ## Getting Started
 
@@ -33,15 +50,21 @@ yarn add @composio/core
 pnpm add @composio/core
 ```
 
-#### Quick start:
+#### Initialize the client
 
 ```typescript
 import { Composio } from '@composio/core';
-// Initialize the SDK
+
+// Initialize with your API key (or set COMPOSIO_API_KEY env variable)
 const composio = new Composio({
-  // apiKey: 'your-api-key',
+  apiKey: process.env.COMPOSIO_API_KEY,
 });
 ```
+
+> **Tip:** You can also export your API key as an environment variable and omit `apiKey` from the constructor:
+> ```bash
+> export COMPOSIO_API_KEY="your-api-key"
+> ```
 
 #### Simple Agent with OpenAI Agents
 
@@ -54,25 +77,57 @@ import { Composio } from '@composio/core';
 import { OpenAIAgentsProvider } from '@composio/openai-agents';
 import { Agent, run } from '@openai/agents';
 
+// Initialize Composio with the OpenAI Agents provider
 const composio = new Composio({
+  apiKey: process.env.COMPOSIO_API_KEY,
   provider: new OpenAIAgentsProvider(),
 });
 
+// Fetch tools for a specific user from HackerNews toolkit
 const userId = 'user@acme.org';
-
 const tools = await composio.tools.get(userId, {
   toolkits: ['HACKERNEWS'],
 });
 
+// Create an agent with the fetched tools
 const agent = new Agent({
   name: 'Hackernews assistant',
   tools: tools,
 });
 
+// Run the agent with a natural language prompt
 const result = await run(agent, 'What is the latest hackernews post about?');
-
 console.log(JSON.stringify(result.finalOutput, null, 2));
-// will return the response from the agent with data from HACKERNEWS API.
+```
+
+#### Simple Agent with Anthropic
+
+```bash
+npm install @composio/anthropic @anthropic-ai/sdk
+```
+
+```typescript
+import Anthropic from '@anthropic-ai/sdk';
+import { Composio } from '@composio/core';
+import { AnthropicProvider } from '@composio/anthropic';
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const composio = new Composio({
+  apiKey: process.env.COMPOSIO_API_KEY,
+  provider: new AnthropicProvider(),
+});
+
+const userId = 'user@acme.org';
+const tools = await composio.tools.get(userId, { toolkits: ['GITHUB'] });
+
+const response = await anthropic.messages.create({
+  model: 'claude-opus-4-5',
+  max_tokens: 1024,
+  tools: tools,
+  messages: [{ role: 'user', content: 'List my open GitHub issues' }],
+});
+
+console.log(response.content);
 ```
 
 ### Python SDK Installation
@@ -85,13 +140,14 @@ pip install composio
 poetry add composio
 ```
 
-#### Quick start:
+#### Initialize the client
 
 ```python
 from composio import Composio
 
+# Initialize with your API key (or set COMPOSIO_API_KEY env variable)
 composio = Composio(
-  # api_key="your-api-key",
+  api_key="your-api-key",  # or omit and set COMPOSIO_API_KEY
 )
 ```
 
@@ -103,13 +159,18 @@ pip install composio_openai_agents openai-agents
 
 ```python
 import asyncio
+import os
 from agents import Agent, Runner
 from composio import Composio
 from composio_openai_agents import OpenAIAgentsProvider
 
 # Initialize Composio client with OpenAI Agents Provider
-composio = Composio(provider=OpenAIAgentsProvider())
+composio = Composio(
+  api_key=os.environ["COMPOSIO_API_KEY"],
+  provider=OpenAIAgentsProvider(),
+)
 
+# Fetch tools for a specific user
 user_id = "user@acme.org"
 tools = composio.tools.get(user_id=user_id, toolkits=["HACKERNEWS"])
 
@@ -120,7 +181,6 @@ agent = Agent(
     tools=tools,
 )
 
-# Run the agent
 async def main():
     result = await Runner.run(
         starting_agent=agent,
@@ -129,37 +189,70 @@ async def main():
     print(result.final_output)
 
 asyncio.run(main())
-# will return the response from the agent with data from HACKERNEWS API.
+```
+
+#### Simple Agent with LangChain
+
+```bash
+pip install composio_langchain langchain-openai
+```
+
+```python
+import os
+from composio import Composio
+from composio_langchain import LangchainProvider
+from langchain_openai import ChatOpenAI
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate
+
+composio = Composio(
+  api_key=os.environ["COMPOSIO_API_KEY"],
+  provider=LangchainProvider(),
+)
+
+user_id = "user@acme.org"
+tools = composio.tools.get(user_id=user_id, toolkits=["GITHUB"])
+
+llm = ChatOpenAI(model="gpt-4o")
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant."),
+    ("placeholder", "{chat_history}"),
+    ("human", "{input}"),
+    ("placeholder", "{agent_scratchpad}"),
+])
+
+agent = create_tool_calling_agent(llm, tools, prompt)
+executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+result = executor.invoke({"input": "List my open GitHub issues"})
+print(result["output"])
 ```
 
 For more detailed usage instructions and examples, please refer to each SDK's specific documentation.
 
-### Open API Specification
+### Updating the OpenAPI Specification
 
-To update the OpenAPI specifications used for generating SDK documentation:
+To pull the latest API specifications from the backend:
 
 ```bash
-# Pull the latest API specifications from the backend
 pnpm api:pull
 ```
 
-This command pulls the OpenAPI specification from `https://backend.composio.dev/api/v3/openapi.json` and updates the local API documentation files.
-
-This is pulled automatically with build step.
+This fetches the OpenAPI spec from `https://backend.composio.dev/api/v3/openapi.json` and updates the local API documentation files. This step also runs automatically during the build.
 
 ## Available SDKs
 
-### TypeScript SDK (/ts)
+### TypeScript SDK (`/ts`)
 
-The TypeScript SDK provides a modern, type-safe way to interact with Composio's services. It's designed for both Node.js and browser environments, offering full TypeScript support with comprehensive type definitions.
+The TypeScript SDK provides a modern, type-safe way to interact with Composio's services. It targets both Node.js and browser environments with full TypeScript support and comprehensive type definitions.
 
-For detailed information about the TypeScript SDK, please refer to the [TypeScript SDK Documentation](/ts/README.md).
+See [TypeScript SDK Documentation](/ts/README.md) for full details.
 
-### Python SDK (/python)
+### Python SDK (`/python`)
 
-The Python SDK offers a Pythonic interface to Composio's services, making it easy to integrate Composio into your Python applications. It supports Python 3.10+ and follows modern Python development practices.
+The Python SDK offers a Pythonic interface to Composio's services, making it easy to integrate into Python applications. It supports Python 3.10+ and follows modern development practices.
 
-For detailed information about the Python SDK, please refer to the [Python SDK Documentation](/python/README.md).
+See [Python SDK Documentation](/python/README.md) for full details.
 
 ## Provider Support
 
@@ -190,7 +283,7 @@ The following table shows which AI frameworks and platforms are supported in eac
 ### Core Packages
 
 | Package | Version |
-|---------|---------|
+|---------|-------|
 | **TypeScript** | |
 | [@composio/core](https://www.npmjs.com/package/@composio/core) | ![npm version](https://img.shields.io/npm/v/@composio/core) |
 | **Python** | |
@@ -199,7 +292,7 @@ The following table shows which AI frameworks and platforms are supported in eac
 ### Provider Packages
 
 | Package | Version |
-|---------|---------|
+|---------|-------|
 | **TypeScript** | |
 | [@composio/openai](https://www.npmjs.com/package/@composio/openai) | ![npm version](https://img.shields.io/npm/v/@composio/openai) |
 | [@composio/openai-agents](https://www.npmjs.com/package/@composio/openai-agents) | ![npm version](https://img.shields.io/npm/v/@composio/openai-agents) |
@@ -226,18 +319,17 @@ The following table shows which AI frameworks and platforms are supported in eac
 ### Utility Packages
 
 | Package | Version |
-|---------|---------|
+|---------|-------|
 | [@composio/json-schema-to-zod](https://www.npmjs.com/package/@composio/json-schema-to-zod) | ![npm version](https://img.shields.io/npm/v/@composio/json-schema-to-zod) |
 | [@composio/ts-builders](https://www.npmjs.com/package/@composio/ts-builders) | ![npm version](https://img.shields.io/npm/v/@composio/ts-builders) |
 
-_if you are looking for the older sdk, you can find them [here](https://github.com/ComposioHQ/composio/tree/master)_
+_Looking for the older SDK? Find it [here](https://github.com/ComposioHQ/composio/tree/master)._
 
 ## Rube
 
-[Rube](https://rube.app) is a Model Context Protocol (MCP) server built with Composio. It connects your AI tools to 500+ apps like Gmail, Slack, GitHub, and Notion. Simply install it in your AI client, authenticate once with your apps, and start asking your AI to perform real actions like "Send an email" or "Create a task." 
+[Rube](https://rube.app) is a Model Context Protocol (MCP) server built with Composio. It connects your AI tools to 500+ apps like Gmail, Slack, GitHub, and Notion. Install it in your AI client, authenticate once, and start asking your AI to perform real actions like "Send an email" or "Create a task."
 
-It integrates with major AI clients like Cursor, Claude Desktop, VS Code, Claude Code and any custom MCP‑compatible client. You can switch between these clients and your integrations follow you.
-
+Rube integrates with major AI clients including Cursor, Claude Desktop, VS Code, Claude Code, and any custom MCP-compatible client. Your integrations follow you across clients.
 
 ## Contributing
 
@@ -245,12 +337,13 @@ We welcome contributions to both SDKs! Please read our [contribution guidelines]
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
-If you encounter any issues or have questions about the SDKs:
+If you encounter any issues or have questions:
 
-- Open an issue in this repository
+- [Open an issue](https://github.com/ComposioHQ/composio/issues) in this repository
 - Contact our [support team](mailto:support@composio.dev)
 - Check our [documentation](https://docs.composio.dev/)
+- Join us on [Discord](https://discord.gg/composio)
