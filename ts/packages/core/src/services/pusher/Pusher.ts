@@ -6,6 +6,7 @@ import {
   ComposioFailedToCreatePusherClientError,
   ComposioFailedToGetSDKRealtimeCredentialsError,
   ComposioFailedToSubscribeToPusherChannelError,
+  ComposioFailedToUnsubscribeFromPusherChannelError,
 } from '../../errors/TriggerErrors';
 import logger from '../../utils/logger';
 import { telemetry } from '../../telemetry/Telemetry';
@@ -219,7 +220,7 @@ export class PusherService {
       await pusherClient.unsubscribe(this.pusherChannel);
       logger.info(`✅ Unsubscribed from triggers.`);
     } catch (error) {
-      throw new ComposioFailedToSubscribeToPusherChannelError(
+      throw new ComposioFailedToUnsubscribeFromPusherChannelError(
         'Failed to unsubscribe from Pusher channel',
         {
           cause: error,
