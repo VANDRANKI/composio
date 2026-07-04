@@ -44,8 +44,15 @@ export async function checkForLatestVersionFromNPM(currentVersion: string) {
 
     // @TODO: Check if fetch is available, if not use node-fetch
     const response = await fetch(`https://registry.npmjs.org/${packageName}/latest`);
+    if (!response.ok) {
+      // Registry request failed (e.g. rate limited or unreachable); skip the check silently.
+      return;
+    }
     const data = await response.json();
     const latestVersion = data.version;
+    if (!latestVersion) {
+      return;
+    }
 
     if (semver.gt(latestVersion, currentVersionFromPackageJson) && !IS_DEVELOPMENT_OR_CI) {
       logger.info(
