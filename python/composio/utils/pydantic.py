@@ -28,7 +28,17 @@ def none_to_omit(value: t.Optional[t.Any]) -> t.Any:
 
 
 def parse_pydantic_error(e: pydantic.ValidationError) -> str:
-    """Parse pydantic validation error."""
+    """Parse a pydantic validation error into a human-readable message.
+
+    Groups missing-field errors together and appends all other validation
+    errors with the offending parameter name.
+
+    Args:
+        e: The `pydantic.ValidationError` raised during validation.
+
+    Returns:
+        A formatted, human-readable summary of the validation failure(s).
+    """
     message = "Invalid request data provided"
     missing = []
     others = [""]
