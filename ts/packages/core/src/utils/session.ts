@@ -91,6 +91,14 @@ function detectRuntime(): string {
 // Detect once at module initialization
 const RUNTIME_ENV = detectRuntime();
 
+/**
+ * Builds the set of `x-*` telemetry/session headers sent with every SDK request.
+ *
+ * @param provider - The active provider instance, if any. Its `name` is sent as
+ *                    `x-framework`; when omitted, `'unknown'` is sent instead.
+ * @returns A record of session headers (`x-framework`, `x-source`, `x-runtime`,
+ *          `x-sdk-version`) describing the current provider, SDK, and runtime.
+ */
 export function getSessionHeaders(
   provider: BaseComposioProvider<unknown, unknown, unknown> | undefined
 ) {
@@ -102,6 +110,16 @@ export function getSessionHeaders(
   };
 }
 
+/**
+ * Merges caller-supplied headers with the SDK's session headers.
+ *
+ * Session headers (see {@link getSessionHeaders}) are applied after the caller's
+ * headers, so they always take precedence if there is a naming collision.
+ *
+ * @param headers - Caller-supplied headers to merge, if any.
+ * @param provider - The active provider instance, forwarded to {@link getSessionHeaders}.
+ * @returns The merged headers object.
+ */
 export const getDefaultHeaders = (
   headers: ComposioRequestHeaders | undefined,
   provider: BaseComposioProvider<unknown, unknown, unknown> | undefined
