@@ -196,4 +196,4 @@ class HttpClient(BaseComposio, WithLogger):
         try:
             request.headers["x-sdk-version"] = version("composio")
         except Exception:
-            request.headers["x-sdk-version"] = "unknwon"
+            request.headers["x-sdk-version"] = "unknown"
