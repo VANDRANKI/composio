@@ -8,9 +8,10 @@ from composio.client.types import (
     AuthSchemeL,
     toolkit_list_params,
     toolkit_list_response,
+    toolkit_retrieve_categories_response,
     toolkit_retrieve_response,
 )
-from composio.core.models.connected_accounts import ConnectedAccounts
+from composio.core.models.connected_accounts import ConnectedAccounts, ConnectionRequest
 from composio.utils.pydantic import none_to_omit
 
 from .base import Resource
@@ -84,7 +85,9 @@ class Toolkits(Resource):
             return self._client.toolkits.retrieve(slug=slug)
         return self._client.toolkits.list(**(query or {})).items
 
-    def list_categories(self):
+    def list_categories(
+        self,
+    ) -> t.List[toolkit_retrieve_categories_response.Item]:
         """List all categories of toolkits."""
         return self._client.toolkits.retrieve_categories().items
 
@@ -109,7 +112,7 @@ class Toolkits(Resource):
             },
         ).auth_config.id
 
-    def authorize(self, *, user_id: str, toolkit: str):
+    def authorize(self, *, user_id: str, toolkit: str) -> ConnectionRequest:
         """
         Authorize a user to a toolkit
 
