@@ -92,7 +92,7 @@ _event: t.Optional[tr.Event] = None
 _thread: t.Optional[tr.Thread] = None
 
 
-def _setup():
+def _setup() -> t.Tuple[EventQueue, tr.Event, tr.Thread]:
     global _queue, _event, _thread
     if _queue is None:
         _queue = q.Queue[Event]()
@@ -122,7 +122,7 @@ def _setup():
     return _queue, _event, _thread
 
 
-def _teardown(queue: EventQueue, event: tr.Event, thread: tr.Thread):
+def _teardown(queue: EventQueue, event: tr.Event, thread: tr.Thread) -> None:
     # Wait max 2 seconds for queue to empty
     deadline = time.time() + 2.0
     while queue.qsize() and time.time() < deadline:
@@ -133,7 +133,7 @@ def _teardown(queue: EventQueue, event: tr.Event, thread: tr.Thread):
     thread.join(timeout=3.0)
 
 
-def _push(event: Event):
+def _push(event: Event) -> None:
     try:
         _ = (
             httpx.post(
@@ -153,7 +153,7 @@ def _push(event: Event):
         pass
 
 
-def _thread_loop(queue: EventQueue, event: tr.Event):
+def _thread_loop(queue: EventQueue, event: tr.Event) -> None:
     while not event.is_set():
         try:
             _push(queue.get(timeout=0.1))
@@ -161,7 +161,7 @@ def _thread_loop(queue: EventQueue, event: tr.Event):
             continue
 
 
-def push_event(event: Event):
+def push_event(event: Event) -> None:
     q, _, _ = _setup()
     q.put(event)
 
