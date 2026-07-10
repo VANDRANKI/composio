@@ -409,7 +409,7 @@ _ = {
 
 
 class _ChunkedTriggerEventData(te.TypedDict):
-    """Cunked trigger event data model."""
+    """Chunked trigger event data model."""
 
     id: str
     index: int
@@ -450,7 +450,7 @@ class TriggerSubscription(Resource):
     def handle(
         self, **filters: te.Unpack[TriggerEventFilters]
     ) -> t.Callable[[TriggerCallback], TriggerCallback]:
-        """Register a trigger callaback."""
+        """Register a trigger callback."""
 
         def _wrap(f: TriggerCallback) -> TriggerCallback:
             self.logger.debug(f"Registering callback `{f.__name__}`")
