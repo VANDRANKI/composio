@@ -104,7 +104,10 @@ class Modifier:
         modifer_type: str,
     ) -> ModifierInOut:
         if self.modifier is None:
-            raise ValueError("Modifier is not provided")
+            raise ValueError(
+                f"Modifier is not provided for tool '{tool}' (toolkit '{toolkit}', "
+                f"type '{modifer_type}')"
+            )
 
         # If no tools or toolkits are provided, apply the modifier to all tools
         if (
