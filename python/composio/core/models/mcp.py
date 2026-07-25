@@ -264,7 +264,7 @@ class MCP(Resource):
         except Exception as e:
             raise ValidationError("Failed to list MCP servers") from e
 
-    def get(self, server_id: str):
+    def get(self, server_id: str) -> MCPItem:
         """
         Retrieve detailed information about a specific MCP server/config.
 
