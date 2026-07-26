@@ -30,7 +30,7 @@ class ComposioError(Exception):
 
 
 class NotFoundError(ComposioError):
-    pass
+    """Raised when a requested resource cannot be found."""
 
 
 class HTTPError(ComposioError):
@@ -64,19 +64,19 @@ class ComposioClientError(ComposioError):
 
 
 class SDKError(ComposioError):
-    pass
+    """Base exception class for generic Composio SDK errors."""
 
 
 class ProcessorError(SDKError):
-    pass
+    """Raised when a request or response processor fails."""
 
 
 class EnumError(ComposioError):
-    pass
+    """Base exception class for enum-related errors."""
 
 
 class ValidationError(ComposioError):
-    pass
+    """Raised when input data fails validation."""
 
 
 class ToolkitError(ComposioError):
