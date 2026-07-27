@@ -17,7 +17,6 @@ export const getEnvVariable = (
  * COMPOSIO_TOOLKIT_VERSION_SLACK=20250902_00
  * COMPOSIO_TOOLKIT_VERSION_GMAIL=latest
  * @returns {Record<string, unknown>}
- * @returns
  */
 export const getEnvsWithPrefix = (prefix: string): Record<string, unknown> => {
   try {
