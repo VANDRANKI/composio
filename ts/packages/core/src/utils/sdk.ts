@@ -6,6 +6,19 @@ import { ComposioError } from '../errors/ComposioError';
 import { ToolkitVersion, ToolkitVersionParam, ToolkitVersions } from '../types/tool.types';
 import { platform } from '#platform';
 
+/**
+ * Masks an API key for safe logging, keeping only the last 4 characters visible.
+ *
+ * @param apiKey - The API key to mask
+ * @returns The masked API key, e.g. `****ab12`
+ */
+const maskApiKey = (apiKey: string): string => {
+  if (apiKey.length <= 4) {
+    return '****';
+  }
+  return `****${apiKey.slice(-4)}`;
+};
+
 // File path helpers
 export const userDataPath = () => {
   try {
@@ -52,7 +65,7 @@ export function getSDKConfig(baseUrl?: string | null, apiKey?: string | null) {
     ComposioError.handleAndThrow(new ComposioNoAPIKeyError());
   }
 
-  logger.debug('Environment', `API Key: ${apiKeyParsed}`);
+  logger.debug('Environment', `API Key: ${maskApiKey(apiKeyParsed)}`);
   logger.debug('Environment', `Base URL: ${baseURLParsed}`);
 
   return { baseURL: baseURLParsed, apiKey: apiKeyParsed };
