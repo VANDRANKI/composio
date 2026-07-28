@@ -13,6 +13,6 @@ export class ArraySpread extends TypeBuilder {
   }
 }
 
-export function arraySpread(innerType: TypeBuilder) {
+export function arraySpread(innerType: TypeBuilder): ArraySpread {
   return new ArraySpread(innerType);
 }
