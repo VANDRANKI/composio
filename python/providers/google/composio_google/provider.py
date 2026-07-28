@@ -16,7 +16,7 @@ from composio.core.provider import NonAgenticProvider
 from composio.types import Modifiers, Tool, ToolExecutionResponse
 
 
-def _convert_map_composite(obj):
+def _convert_map_composite(obj: t.Any) -> t.Any:
     if isinstance(obj, MapComposite):
         return {k: _convert_map_composite(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
