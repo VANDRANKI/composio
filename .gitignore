@@ -46,6 +46,10 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv/
 
 # wrangler
 .wrangler
