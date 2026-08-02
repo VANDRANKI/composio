@@ -1,3 +1,9 @@
+"""
+File-extension to MIME-type mapping, and the reverse MIME-type to
+file-extension mapping used when deriving filenames from content-type
+headers.
+"""
+
 import typing as t
 from pathlib import Path
 
@@ -507,6 +513,11 @@ _types = {
 
 
 def guess(file: t.Union[str, Path]) -> str:
+    """Guess the MIME type of *file* from its extension.
+
+    Falls back to ``application/octet-stream`` when the extension is
+    unknown or the path has no extension.
+    """
     return _types.get(Path(file).suffix, _default)
 
 
