@@ -264,7 +264,7 @@ class MCP(Resource):
         except Exception as e:
             raise ValidationError("Failed to list MCP servers") from e
 
-    def get(self, server_id: str):
+    def get(self, server_id: str) -> t.Any:
         """
         Retrieve detailed information about a specific MCP server/config.
 
@@ -294,7 +294,7 @@ class MCP(Resource):
         toolkits: t.Optional[t.List[t.Union[ConfigToolkit, str]]] = None,
         manually_manage_connections: t.Optional[bool] = None,
         allowed_tools: t.Optional[t.List[str]] = None,
-    ):
+    ) -> t.Any:
         """
         Update an existing MCP server configuration.
 
