@@ -53,12 +53,12 @@ export class MCP {
 
   /**
    * Create a new MCP configuration.
-   * @param {Object} params - Parameters for creating the MCP configuration
-   * @param {Array} params.authConfig - Array of auth configurations with id and allowed tools
-   * @param {Object} params.options - Configuration options
-   * @param {string} params.options.name - Unique name for the MCP configuration
-   * @param {boolean} [params.options.manuallyManageConnections] - Whether to use chat-based authentication or manually connect accounts
-   * @returns {Promise<McpServerCreateResponse<T>>} Created server details with instance getter
+   * @param {string} name - Unique name for the MCP configuration
+   * @param {Object} mcpConfig - Parameters for creating the MCP configuration
+   * @param {Array<string | Object>} mcpConfig.toolkits - Toolkit slugs, or objects with `toolkit`/`authConfigId`, to include
+   * @param {string[]} [mcpConfig.allowedTools] - Array of tool slugs to allow on the server
+   * @param {boolean} [mcpConfig.manuallyManageConnections] - Whether to manually connect user accounts instead of injecting chat-based auth tools (defaults to false)
+   * @returns {Promise<MCPConfigCreateResponse>} Created server details with instance getter
    *
    * @example
    * ```typescript
