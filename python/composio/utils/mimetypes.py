@@ -507,6 +507,12 @@ _types = {
 
 
 def guess(file: t.Union[str, Path]) -> str:
+    """Guess the MIME type of a file from its extension.
+
+    Looks up the file's suffix (e.g. ``.pdf``) in the extension-to-MIME-type
+    table and falls back to ``application/octet-stream`` if the extension is
+    unknown.
+    """
     return _types.get(Path(file).suffix, _default)
 
 
