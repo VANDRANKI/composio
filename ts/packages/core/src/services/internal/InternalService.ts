@@ -4,7 +4,7 @@
  * It is used to get the Pusher key and project ID for the SDK realtime credentials.
  * These are the endpoints which are not exposed to the public via the client SDKs.
  */
-import ComposioClitent from '@composio/client';
+import ComposioClient from '@composio/client';
 import {
   ComposioSDKRealtimeCredentialsResponse,
   SDKRealtimeCredentialsResponse,
@@ -15,7 +15,7 @@ import logger from '../../utils/logger';
 const SDK_REALTIME_CREDENTIALS_ENDPOINT = '/api/v3/internal/sdk/realtime/credentials';
 
 export class InternalService {
-  constructor(private readonly client: ComposioClitent) {
+  constructor(private readonly client: ComposioClient) {
     this.client = client;
   }
 
