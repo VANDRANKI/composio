@@ -84,7 +84,7 @@ class Resource(WithLogger, metaclass=ResourceMeta):
     """Base resource class for composio client."""
 
     def sanitize_payload(self, payload: PayloadT) -> PayloadT:
-        return {k: v for k, v in payload.items()}  # type: ignore
+        return {**payload}  # type: ignore
 
     def __init__(self, client: HttpClient):
         super().__init__()
