@@ -16,11 +16,21 @@ OPENAPI_TO_PYTHON = {
 
 # pylint: disable=unused-argument
 def _handle_object_type(schema: t.Dict) -> t.Type:
+    """Convert an OpenAPI ``object`` schema to a Python type.
+
+    Nested object properties are not supported yet, so this always
+    resolves to a generic ``Dict[str, Any]``.
+    """
     # Nested objects are not supported ATM
     return t.Dict[str, t.Any]
 
 
 def _handle_array_type(schema: t.Dict) -> t.Any:
+    """Convert an OpenAPI ``array`` schema to a ``List[...]`` type.
+
+    Falls back to ``List[Any]`` when the array's ``items`` schema has
+    no declared type. Nested object item schemas are discarded.
+    """
     # This discards the nested objects
     items_type = schema.get("items", {}).get("type")
     if items_type is None:
@@ -31,10 +41,18 @@ def _handle_array_type(schema: t.Dict) -> t.Any:
 
 
 def _handle_enum_type(schema: t.Dict) -> t.Any:
+    """Convert an OpenAPI ``enum`` schema to a ``Literal[...]`` type."""
     return t.Literal[tuple(schema["enum"])]
 
 
 def _type_to_parameter(schema: t.Dict[str, t.Any]) -> t.Any:
+    """Resolve a single OpenAPI property schema to a Python type.
+
+    Handles ``enum``, primitive types (via ``OPENAPI_TO_PYTHON``),
+    ``object``, and ``array`` schemas.
+
+    :raises InvalidSchemaError: If the schema's ``type`` is not recognized.
+    """
     if "enum" in schema:
         return _handle_enum_type(schema=schema)
 
@@ -52,18 +70,26 @@ def _type_to_parameter(schema: t.Dict[str, t.Any]) -> t.Any:
 
 
 def _handle_composite_type(schemas: t.List[t.Dict]) -> t.Any:
+    """Convert a list of subschemas to a ``Union[...]`` of their types."""
     return t.Union[tuple(map(_type_to_parameter, schemas))]
 
 
 def _one_of_to_parameter(schema: t.Dict[str, t.Any]) -> t.Any:
+    """Convert an OpenAPI ``oneOf`` schema to a ``Union[...]`` type."""
     return _handle_composite_type(schemas=schema["oneOf"])
 
 
 def _any_of_to_parameter(schema: t.Dict[str, t.Any]) -> t.Any:
+    """Convert an OpenAPI ``anyOf`` schema to a ``Union[...]`` type."""
     return _handle_composite_type(schemas=schema["anyOf"])
 
 
 def _all_of_to_parameter(schema: t.Dict[str, t.Any]) -> t.Type:
+    """Convert an OpenAPI ``allOf`` schema to a Python type.
+
+    Shallow-merges all subschemas into a single schema (later entries
+    win on key conflicts) before resolving the merged result.
+    """
     composite = {}
     for subschema in schema["allOf"]:
         composite.update(subschema)
