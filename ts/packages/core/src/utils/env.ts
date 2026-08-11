@@ -1,3 +1,11 @@
+/**
+ * Reads an environment variable, falling back to `defaultValue` when the
+ * variable is unset or `process.env` is unavailable (e.g. non-Node runtimes).
+ *
+ * @param name - Name of the environment variable to read.
+ * @param defaultValue - Value returned when the variable is not set.
+ * @returns The environment variable's value, or `defaultValue`.
+ */
 export const getEnvVariable = (
   name: string,
   defaultValue: string | undefined = undefined
@@ -17,7 +25,6 @@ export const getEnvVariable = (
  * COMPOSIO_TOOLKIT_VERSION_SLACK=20250902_00
  * COMPOSIO_TOOLKIT_VERSION_GMAIL=latest
  * @returns {Record<string, unknown>}
- * @returns
  */
 export const getEnvsWithPrefix = (prefix: string): Record<string, unknown> => {
   try {
