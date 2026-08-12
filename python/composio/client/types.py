@@ -27,6 +27,7 @@ from composio_client.types import (
     tool_proxy_response,
     toolkit_list_params,
     toolkit_list_response,
+    toolkit_retrieve_categories_response,
     toolkit_retrieve_response,
     trigger_instance_upsert_response,
 )
@@ -86,6 +87,7 @@ __all__ = (
     "tool_proxy_response",
     "toolkit_list_params",
     "toolkit_list_response",
+    "toolkit_retrieve_categories_response",
     "toolkit_retrieve_response",
     "Tool",
     "ToolkitMinimal",

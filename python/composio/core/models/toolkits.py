@@ -8,6 +8,7 @@ from composio.client.types import (
     AuthSchemeL,
     toolkit_list_params,
     toolkit_list_response,
+    toolkit_retrieve_categories_response,
     toolkit_retrieve_response,
 )
 from composio.core.models.connected_accounts import ConnectedAccounts
@@ -25,7 +26,7 @@ AuthFieldsT: t.TypeAlias = t.List[
 
 class Toolkits(Resource):
     """
-    Toolkits are a collectiono of tools that can be used to perform various tasks.
+    Toolkits are a collection of tools that can be used to perform various tasks.
     They're conceptualized as a set of tools. Ex: Github toolkit can perform
     Github actions via its collection of tools. This is a replacement of the
     `apps` concept in the earlier versions of the SDK.
@@ -84,7 +85,9 @@ class Toolkits(Resource):
             return self._client.toolkits.retrieve(slug=slug)
         return self._client.toolkits.list(**(query or {})).items
 
-    def list_categories(self):
+    def list_categories(
+        self,
+    ) -> t.List[toolkit_retrieve_categories_response.Item]:
         """List all categories of toolkits."""
         return self._client.toolkits.retrieve_categories().items
 
