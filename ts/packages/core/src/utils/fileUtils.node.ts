@@ -195,6 +195,11 @@ const uploadFileToS3 = async (
   return key;
 };
 
+/**
+ * Reads a file's content and returns it as a base64-encoded string.
+ * @param file - A `File` instance, a URL string, or a local file path string.
+ * @returns The file name, base64-encoded content, and MIME type.
+ */
 const readFile = async (
   file: File | string
 ): Promise<{ fileName: string; content: string; mimeType: string }> => {
@@ -213,7 +218,9 @@ const readFile = async (
       return await readFileContent(file);
     }
   }
-  throw new Error('Invalid file type');
+  throw new Error(
+    'Invalid file type: expected a File instance, a URL string, or a local file path string'
+  );
 };
 
 export const getFileDataAfterUploadingToS3 = async (
