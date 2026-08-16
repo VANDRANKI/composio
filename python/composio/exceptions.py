@@ -309,19 +309,19 @@ class DescopeConfigError(ComposioError):
 
 
 class InvalidExecuteFunctionError(ComposioError):
-    pass
+    """Raised when a custom tool's `execute` function is not callable or returns an invalid result."""
 
 
 class ToolNotFoundError(ComposioError):
-    pass
+    """Raised when a requested tool slug does not exist in the Composio project."""
 
 
 class InvalidModifier(ComposioError):
-    pass
+    """Raised when a tool modifier is not a function or does not return a valid result."""
 
 
 class ExecuteToolFnNotSetError(ComposioError):
-    pass
+    """Raised when no global tool execution function has been configured on the provider."""
 
 
 class ToolVersionRequiredError(ComposioError):
