@@ -342,11 +342,6 @@ export class ComposioError extends Error {
       logger.error(chalk.yellow(err.path.join('.')) + ' ' + chalk.white(err.message));
     });
 
-    logger.error(chalk.gray('Expected parameters:'));
-    error.errors.forEach(err => {
-      logger.error(chalk.yellow(err.path.join('.')) + ' ' + chalk.white(err.message));
-    });
-
     if (includeStack) {
       logger.error('\n' + chalk.gray('Validation Errors:'));
       error.errors.forEach(err => {
