@@ -39,7 +39,7 @@ function transformMCPItemResponse(response: McpUpdateResponse | McpRetrieveRespo
     }));
 }
 /**
- * MCP (Model Control Protocol) class
+ * MCP (Model Context Protocol) class
  * Handles MCP server operations.
  * When `config.experimental.mcp` is enabled, this class augments the features of `composio.mcp`.
  */
