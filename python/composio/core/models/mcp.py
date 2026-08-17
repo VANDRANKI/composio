@@ -1,5 +1,5 @@
 """
-MCP (Model Control Protocol) module for Composio SDK.
+MCP (Model Context Protocol) module for Composio SDK.
 
 This module provides MCP server operations
 """
@@ -87,7 +87,7 @@ def _add_generate_method(
 
 class MCP(Resource):
     """
-    MCP (Model Control Protocol) class.
+    MCP (Model Context Protocol) class.
     Provides enhanced MCP server operations
 
     This matches the TypeScript ExperimentalMCP class functionality.
