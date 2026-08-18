@@ -70,7 +70,7 @@ class _VerbosityWrapper:
         self.verbosity = verbosity_level
         self.size = _LOG_LINE_SIZE_BY_VERBOSITY[self.verbosity]
 
-    def _trim(self, msg) -> str:
+    def _trim(self, msg: t.Any) -> str:
         msg = str(msg)
         if self.size == -1:
             return msg
@@ -80,19 +80,19 @@ class _VerbosityWrapper:
 
         return msg[: self.size] + "..."
 
-    def info(self, msg, *args, **kwargs):
+    def info(self, msg: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
         self.logger.info(self._trim(msg), *args, **kwargs)
 
-    def debug(self, msg, *args, **kwargs):
+    def debug(self, msg: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
         self.logger.debug(self._trim(msg), *args, **kwargs)
 
-    def warning(self, msg, *args, **kwargs):
+    def warning(self, msg: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
         self.logger.warning(self._trim(msg), *args, **kwargs)
 
-    def error(self, msg, *args, **kwargs):
-        self.logger.error(msg, *args, **kwargs)
+    def error(self, msg: t.Any, *args: t.Any, **kwargs: t.Any) -> None:
+        self.logger.error(self._trim(msg), *args, **kwargs)
 
-    def isEnabledFor(self, level: int):
+    def isEnabledFor(self, level: int) -> bool:
         return self.logger.isEnabledFor(level=level)
 
 
